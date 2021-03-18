@@ -2,13 +2,15 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
+#include <unistd.h>
 
 const float EPS = 0.00001f;
 const float TAU = 0.00001f;
 
-void mul(const float* partA, const float* x, float* res, int matrixSize, int procRank, int procSize, float* buffer) {
+void mul(const float *partA, const float *x, float *res, int matrixSize, int procRank, int procSize) {
     int numberOfLines = matrixSize / procSize;
     int shift = procRank * numberOfLines;
+
     for (int i = 0; i < numberOfLines; ++i) {
         res[shift + i] = 0.0f;
         for (int j = 0; j < matrixSize; ++j) {
@@ -16,26 +18,24 @@ void mul(const float* partA, const float* x, float* res, int matrixSize, int pro
         }
     }
 
-    MPI_Allgather(res + shift, numberOfLines, MPI_FLOAT, buffer, numberOfLines, MPI_FLOAT, MPI_COMM_WORLD);
-
-    std::copy(buffer, buffer + matrixSize, res);
+    MPI_Allgather(MPI_IN_PLACE, numberOfLines, MPI_FLOAT, res, numberOfLines, MPI_FLOAT, MPI_COMM_WORLD);
 }
 
 
-float vectorAbs(const float* x, int size) {
+float vectorAbs(const float *x, int size) {
     float len = 0.0f;
     for (int i = 0; i < size; ++i)
         len += x[i] * x[i];
     return len;
 }
 
-void vectorSub(const float* x, const float* y, float* res, float k, int size) {
+void vectorSub(const float *x, const float *y, float *res, float k, int size) {
     for (int i = 0; i < size; ++i)
         res[i] = x[i] - k * y[i];
 }
 
 
-float* nextX(float* x, const float* b, float* Ax, int matrixSize, float* buffer) {
+float *nextX(float *x, const float *b, float *Ax, int matrixSize, float *buffer) {
     //Ax уже умноженный после проверки (... < EPS) - используеv его
     vectorSub(Ax, b, buffer, 1, matrixSize);
     vectorSub(x, buffer, x, TAU, matrixSize);
@@ -43,8 +43,8 @@ float* nextX(float* x, const float* b, float* Ax, int matrixSize, float* buffer)
     return x;
 }
 
-bool ending(float* x, float* partA, float* b, float* Ax, int matrixSize, int procRank, int procSize, float* buffer) {
-    mul(partA, x, Ax, matrixSize, procRank, procSize, buffer);
+bool ending(float *x, float *partA, float *b, float *Ax, int matrixSize, int procRank, int procSize, float *buffer) {
+    mul(partA, x, Ax, matrixSize, procRank, procSize);
 
     vectorSub(Ax, b, buffer, 1, matrixSize);
 
@@ -54,7 +54,7 @@ bool ending(float* x, float* partA, float* b, float* Ax, int matrixSize, int pro
     }
 
     MPI_Bcast(&div, 1, MPI_FLOAT, 0, MPI_COMM_WORLD);
-    bool res = (div < EPS* EPS);
+    bool res = (div < EPS * EPS);
 
     if (procRank == 0) {
         std::cout << div << std::endl;
@@ -63,7 +63,7 @@ bool ending(float* x, float* partA, float* b, float* Ax, int matrixSize, int pro
     return res;
 }
 
-void init_1(float*& x, float*& partA, float*& b, float*& Ax, int matrixSize, int procRank, int procSize) {
+void init_1(float *&x, float *&partA, float *&b, float *&Ax, int matrixSize, int procRank, int procSize) {
 
     int startLine; //номер строки с которой процесс считает матрицу A
     int numberOfLines; //количествно строк которые обрабатывает каждый процесс
@@ -82,7 +82,7 @@ void init_1(float*& x, float*& partA, float*& b, float*& Ax, int matrixSize, int
 
     b = new float[matrixSize];
     for (int i = 0; i < matrixSize; ++i) {
-        b[i] = (float)matrixSize + 1;
+        b[i] = (float) matrixSize + 1;
     }
     x = new float[matrixSize];
     for (int i = 0; i < matrixSize; ++i) {
@@ -92,23 +92,23 @@ void init_1(float*& x, float*& partA, float*& b, float*& Ax, int matrixSize, int
     Ax = new float[matrixSize];
 }
 
-void printRes(float* x, int size) {
+void printRes(float *x, int size) {
     for (int i = 0; i < size; ++i)
         std::cout << x[i] << " ";;
 }
 
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     MPI_Init(&argc, &argv);
 
     int size = 2 * 2048; //Размер матрицы и вектора
-    float* partA; //часть матрицы коэффицентов для каждого процесса она своя
-    float* b; //вектор правых частей
-    float* x; //вектор значений
+    float *partA; //часть матрицы коэффицентов для каждого процесса она своя
+    float *b; //вектор правых частей
+    float *x; //вектор значений
 
-    float* Ax; //вспомогательный вектор, хранит в себе результат умножения матрицы A на вектор x
+    float *Ax; //вспомогательный вектор, хранит в себе результат умножения матрицы A на вектор x
 
-    float* buffer = new float[size]; //вектор, который будет использоваться как буфер для промежуточных расчетов
+    float *buffer = new float[size]; //вектор, который будет использоваться как буфер для промежуточных расчетов
 
     int procSize; //количество выполняемых процессов
     int procRank; //номер текущего процесса(нумерация с нуля)
