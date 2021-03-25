@@ -5,10 +5,11 @@
 #include <stdbool.h>
 #include <sys/time.h>
 
-const float EPS = 0.00001f;
-const float TAU = 0.00001f;
+constexpr float EPS = 0.00001f;
+constexpr float TAU = 0.00001f;
 
-void mul(const float* partA, const float* x, float* res, int matrixSize) {
+
+inline void mul(const float* partA, const float* x, float* res, int matrixSize) {
 
 #pragma omp for
     for (int i = 0; i < matrixSize; ++i) {
@@ -19,7 +20,7 @@ void mul(const float* partA, const float* x, float* res, int matrixSize) {
     }
 }
 
-float vectorAbs(const float* x, int size) {
+inline float vectorAbs(const float* x, int size) {
     float len = 0.0f;
 #pragma omp for
     for (int i = 0; i < size; ++i)
@@ -27,14 +28,14 @@ float vectorAbs(const float* x, int size) {
     return len;
 }
 
-void vectorSub(const float* x, const float* y, float* res, float k, int size) {
+inline void vectorSub(const float* x, const float* y, float* res, float k, int size) {
 #pragma omp for
     for (int i = 0; i < size; ++i)
         res[i] = x[i] - k * y[i];
 }
 
 
-void nextX(float* x, const float* b, float* Ax, int matrixSize, float* buffer) {
+inline void nextX(float* x, const float* b, float* Ax, int matrixSize, float* buffer) {
     //Ax уже умноженный после проверки (... < EPS) - используеv его
     vectorSub(Ax, b, buffer, 1, matrixSize);
 
@@ -42,7 +43,7 @@ void nextX(float* x, const float* b, float* Ax, int matrixSize, float* buffer) {
 
 }
 
-bool ending(float* x, float* partA, float* b, float* Ax, int matrixSize, float* buffer) {
+inline bool ending(float* x, float* partA, float* b, float* Ax, int matrixSize, float* buffer) {
     mul(partA, x, Ax, matrixSize);
 
     vectorSub(Ax, b, buffer, 1, matrixSize);
@@ -51,9 +52,8 @@ bool ending(float* x, float* partA, float* b, float* Ax, int matrixSize, float* 
 
 #pragma omp single
     std::cout << div << std::endl;
-    bool res = (div < EPS* EPS);
-
-    return res;
+    bool res;
+    return res = (div < EPS* EPS);
 }
 
 
