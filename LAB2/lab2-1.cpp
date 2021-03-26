@@ -4,8 +4,8 @@
 #include <time.h>
 #include <sys/time.h>
 
-const float EPS = 0.00001f;
-const float TAU = 0.00001f;
+constexpr float EPS = 0.00001f;
+constexpr float TAU = 0.00001f;
 
 void mul(const float* partA, const float* x, float* res, int matrixSize) {
 #pragma omp parallel for
@@ -49,9 +49,8 @@ bool ending(float* x, float* partA, float* b, float* Ax, int matrixSize, float* 
 
     std::cout << div << std::endl;
 
-    bool res = (div < EPS* EPS);
 
-    return res;
+    return div<EPS*EPS;
 }
 
 void init_1(float*& x, float*& partA, float*& b, float*& Ax, int matrixSize) {
