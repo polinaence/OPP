@@ -33,7 +33,7 @@ void vectorSub(const float* x, const float* y, float* res, float k, int size) {
 
 
 void nextX(float* x, const float* b, float* Ax, int matrixSize, float* buffer) {
-    //Ax óæå óìíîæåííûé ïîñëå ïðîâåðêè (... < EPS) - èñïîëüçóåv åãî
+ 
     vectorSub(Ax, b, buffer, 1, matrixSize);
 
     vectorSub(x, buffer, x, TAU, matrixSize);
