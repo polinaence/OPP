@@ -36,7 +36,7 @@ void vectorSub(const float* x, const float* y, float* res, float k, int size) {
 
 
 void nextX(float* x, const float* b, float* Ax, int matrixSize, float* buffer) {
-    //Ax уже умноженный после проверки (... < EPS) - используеv его
+    //Ax ГіГ¦ГҐ ГіГ¬Г­Г®Г¦ГҐГ­Г­Г»Г© ГЇГ®Г±Г«ГҐ ГЇГ°Г®ГўГҐГ°ГЄГЁ (... < EPS) - ГЁГ±ГЇГ®Г«ГјГ§ГіГҐv ГҐГЈГ®
     vectorSub(Ax, b, buffer, 1, matrixSize);
 
     vectorSub(x, buffer, x, TAU, matrixSize);
@@ -88,14 +88,14 @@ void printRes(float* x, int size) {
 int main(int argc, char* argv[]) {
 
 
-    int size = 2048 * 2; //Размер матрицы и вектора
-    float* partA; //часть матрицы коэффицентов для каждого процесса она своя
-    float* b; //вектор правых частей
-    float* x; //вектор значений
+    int size = 2048 * 2; 
+    float* partA;
+    float* b; 
+    float* x; 
 
-    float* Ax; //вспомогательный вектор, хранит в себе результат умножения матрицы A на вектор x
+    float* Ax; 
 
-    float* buffer = new float[size]; //вектор, который будет использоваться как буфер для промежуточных расчетов
+    float* buffer = new float[size]; 
 
 
     init_1(x, partA, b, Ax, size);
